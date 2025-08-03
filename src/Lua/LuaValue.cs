@@ -65,7 +65,7 @@ public readonly struct LuaValue : IEquatable<LuaValue>
                     result = Unsafe.As<int, T>(ref v);
                     return true;
                 }
-                else if (t == typeof(long))
+                else if (t == typeof(long) || t.IsEnum)
                 {
                     if (!MathEx.IsInteger(value))
                     {
