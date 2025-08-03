@@ -121,12 +121,13 @@ public class Traceback(LuaState state, ReadOnlySpan<CallStackFrame> stackFrames)
         return CreateTracebackMessage(State, StackFrames, LuaValue.Nil, skipFrames);
     }
 
-    public static string CreateTracebackMessage(LuaThread thread, LuaValue message, int stackFramesSkipCount = 0)
+    public delegate void GetChunkNameHyperlink(string chunkName, int line, out string openTag, out string closeTag);
+    public static string CreateTracebackMessage(LuaThread thread, LuaValue message, int stackFramesSkipCount = 0, GetChunkNameHyperlink getChunkNameHyperlink = null)
     {
-        return CreateTracebackMessage(thread.State, thread.GetCallStackFrames(), message, stackFramesSkipCount);
+        return CreateTracebackMessage(thread.State, thread.GetCallStackFrames(), message, stackFramesSkipCount, getChunkNameHyperlink);
     }
 
-    internal static string CreateTracebackMessage(LuaState state, ReadOnlySpan<CallStackFrame> stackFrames, LuaValue message, int skipCount = 0)
+    internal static string CreateTracebackMessage(LuaState state, ReadOnlySpan<CallStackFrame> stackFrames, LuaValue message, int skipCount = 0, GetChunkNameHyperlink getChunkNameHyperlink = null)
     {
         using var list = new PooledList<char>(64);
         if (message.Type is not LuaValueType.Nil)
