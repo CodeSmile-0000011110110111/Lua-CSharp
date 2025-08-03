@@ -35,6 +35,7 @@ public sealed class LuaState
 
     internal ref FastStackCore<LuaDebug.LuaDebugBuffer> DebugBufferPool => ref debugBufferPool;
 
+    public object UserData { get; set; }
     public LuaTable Environment => environment;
 
     public LuaTable Registry => registry;
