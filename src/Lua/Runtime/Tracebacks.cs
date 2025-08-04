@@ -136,7 +136,7 @@ public class Traceback(LuaState state, ReadOnlySpan<CallStackFrame> stackFrames)
             list.AddRange("\n");
         }
 
-        list.AddRange("stack traceback:\n");
+        list.AddRange("Lua stack traceback:\n");
         var intFormatBuffer = (stackalloc char[15]);
         var shortSourceBuffer = (stackalloc char[59]);
 
@@ -150,7 +150,7 @@ public class Traceback(LuaState state, ReadOnlySpan<CallStackFrame> stackFrames)
                     continue;
                 }
 
-                list.AddRange("\t[C#]: in function '");
+                list.AddRange("[C#]: in function '");
                 list.AddRange(lastFunc.Name);
                 list.AddRange("'\n");
             }
@@ -165,11 +165,18 @@ public class Traceback(LuaState state, ReadOnlySpan<CallStackFrame> stackFrames)
 
                 if (frame.IsTailCall)
                 {
-                    list.AddRange("\t(...tail calls...)\n");
+                    list.AddRange("(...tail calls...)\n");
                 }
 
                 var p = closure.Proto;
-                list.AddRange("\t");
+                //list.AddRange("\t");
+
+                string linkOpenTag = null;
+                string linkCloseTag = null;
+                if (getChunkNameHyperlink != null && p.LineInfo.Length > frame.CallerInstructionIndex)
+                    getChunkNameHyperlink(p.ChunkName, p.LineInfo[frame.CallerInstructionIndex], out linkOpenTag, out linkCloseTag);
+                list.AddRange(linkOpenTag);
+
                 var len = LuaDebug.WriteShortSource(p.ChunkName, shortSourceBuffer);
                 list.AddRange(shortSourceBuffer[..len]);
                 list.AddRange(":");
@@ -183,6 +190,7 @@ public class Traceback(LuaState state, ReadOnlySpan<CallStackFrame> stackFrames)
                     list.AddRange(intFormatBuffer[..charsWritten]);
                 }
 
+                list.AddRange(linkCloseTag);
 
                 list.AddRange(": in ");
                 if (p.LineDefined == 0)
