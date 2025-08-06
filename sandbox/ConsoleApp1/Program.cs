@@ -1,3 +1,4 @@
+using ConsoleApp1;
 using System.Runtime.CompilerServices;
 using Lua.Runtime;
 using Lua;
@@ -8,6 +9,39 @@ using System.IO;
 using System.Text;
 var state = LuaState.Create();
 state.OpenStandardLibraries();
+
+
+state.Environment["existingtable"] = new LuaTable();
+state.Environment["existinglist"] = new LuaValue(new LuaList<string>());
+state.Environment["makelist"] = new LuaFunction("makelist", (context, _) =>
+{
+    var list = new LuaValue(new LuaList<string>());
+    return new ValueTask<int>(context.Return(list));
+});
+
+
+var enumTable = new LuaTable();
+var indexFunc = new LuaFunction("enum.__index", (context, token) =>
+{
+    Console.WriteLine("enum.__index called ...");
+    return new ValueTask<Int32>(context.Return(1234567890));
+
+});
+var lenFunc = new LuaFunction("enum.__len", (context, token) =>
+{
+    Console.WriteLine("enum.__len called ...");
+    return new ValueTask<Int32>(context.Return(3));
+
+});
+enumTable.Metatable = new LuaTable();
+enumTable.Metatable[Metamethods.Index] = indexFunc;
+enumTable.Metatable[Metamethods.Len] = lenFunc;
+state.Environment["testEnum"] = enumTable;
+state.Environment["testEnum"] = new LuaValue(new LuaList<object>());
+
+//await state.DoStringAsync(File.ReadAllText(GetAbsolutePath("test.lua")), "test.lua");
+
+
 
 state.Environment["escape"] = new LuaFunction("escape",
     (c, _) =>
@@ -31,6 +65,7 @@ try
 
     Console.WriteLine("Output " + new string('-', 50));
 
+    //state.RootAccess.Stack.Push(new LuaTable());
     var count = await state.RootAccess.RunAsync(closure);
 
     Console.WriteLine("Result " + new string('-', 50));
